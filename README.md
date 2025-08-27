@@ -52,21 +52,3 @@ First post only updated when content actually changes.
 ETag/Last-Modified cache supported.
 
 
-## 4) Commit and push to GitHub
-(Empty repos don’t have a default branch yet—make `main`.)
-
-```bash
-git status
-git checkout -b main
-git add -A
-git commit -m "Initial plugin skeleton, settings, and README"
-git push -u origin main
-```
-
-Quick check:
-
-```
-git remote -v
-```
-
-
