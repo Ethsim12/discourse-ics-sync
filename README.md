@@ -13,11 +13,14 @@ hooks:
         cd: $home/plugins
         cmd:
           - git clone https://github.com/Ethsim12/Ical2Discourse-sync-script.git
+```
 
 Rebuild:
 
+```
 cd /var/discourse
 ./launcher rebuild app
+```
 
 Configure (Admin → Settings → Plugins)
 
@@ -27,6 +30,7 @@ Enable ics_enabled
 
 Set ics_feeds JSON, e.g.:
 
+```
 [
   {
     "key": "uoncals",
@@ -35,6 +39,7 @@ Set ics_feeds JSON, e.g.:
     "static_tags": ["timetable","uonc"]
   }
 ]
+```
 
 Notes
 
@@ -56,9 +61,12 @@ git checkout -b main
 git add -A
 git commit -m "Initial plugin skeleton, settings, and README"
 git push -u origin main
+```
+
 Quick check:
 
+```
 git remote -v
-
+```
 
 
