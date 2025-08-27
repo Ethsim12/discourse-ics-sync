@@ -1,0 +1,10 @@
+en:
+  site_settings:
+    ics_enabled: "Enable the ICS sync plugin"
+    ics_user: "Username to attribute topics to"
+    ics_category_default: "Default category for new topics"
+    ics_default_tags: "Default tags (comma-separated)"
+    ics_namespace: "Tag namespace prefix (optional)"
+    ics_max_tags_length: "Maximum tag length after processing"
+    ics_feeds: "ICS feed configuration (JSON array)"
+    ics_fetch_interval_mins: "Fetch interval override (minutes; 0=default schedule)"

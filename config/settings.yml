@@ -1,34 +1,59 @@
+# config/settings.yml
 plugins:
   ics_enabled:
-    default: false
+    default: true
     client: true
+    type: bool
+    description: Enable the ICS sync plugin
+
   ics_user:
     default: "system"
     client: true
+    type: username
+    description: Discourse username to attribute created/updated topics to
+
   ics_category_default:
-    default: 0
+    default: ""
     client: true
+    type: category
+    description: Default category for new topics (used when a feed item does not specify one)
+
   ics_default_tags:
     default: ""
     client: true
+    type: text
+    description: Comma-separated list of default tags applied to new/updated topics (in addition to per-feed static_tags)
+
   ics_namespace:
     default: ""
     client: true
+    type: text
+    description: Optional namespace prefix for generated tags (e.g. "uoncals"); leave blank to disable
+
   ics_max_tags_length:
     default: 30
     client: true
+    type: integer
+    min: 10
+    max: 60
+    description: Maximum length for generated tags after namespacing/slugging
+
   ics_feeds:
-    type: text
     default: ""
-    textarea: true
     client: true
+    type: text
+    textarea: true
     description:
       en: >
-        JSON array of feeds. Example:
-        [{"key":"uoncals","url":"https://example.com/my.ics","category_id":42,"static_tags":["timetable","uonc"]}]
+        JSON array of feed configs. Example:
+        [{"key":"uoncals","url":"https://example.com/my.ics","category_id":42,"static_tags":["timetable","uoncals"]}]
+
   ics_fetch_interval_mins:
     default: 0
     client: true
-    description:
-      en: >
-        Optional override. If >= 1, the job will behave like a fixed-interval poller in minutes.
+    type: integer
+    min: 0
+    description: >
+      Optional override. If >= 1, the job behaves like a fixed-interval poller in minutes.
+      If 0, the job runs on the default schedule (e.g. Sidekiq daily/cron).
+
