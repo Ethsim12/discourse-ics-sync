@@ -1,0 +1,34 @@
+plugins:
+  ics_enabled:
+    default: false
+    client: true
+  ics_user:
+    default: "system"
+    client: true
+  ics_category_default:
+    default: 0
+    client: true
+  ics_default_tags:
+    default: ""
+    client: true
+  ics_namespace:
+    default: ""
+    client: true
+  ics_max_tags_length:
+    default: 30
+    client: true
+  ics_feeds:
+    type: text
+    default: ""
+    textarea: true
+    client: true
+    description:
+      en: >
+        JSON array of feeds. Example:
+        [{"key":"uoncals","url":"https://example.com/my.ics","category_id":42,"static_tags":["timetable","uonc"]}]
+  ics_fetch_interval_mins:
+    default: 0
+    client: true
+    description:
+      en: >
+        Optional override. If >= 1, the job will behave like a fixed-interval poller in minutes.
