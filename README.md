@@ -12,7 +12,7 @@ hooks:
     - exec:
         cd: $home/plugins
         cmd:
-          - git clone https://github.com/Ethsim12/Ical2Discourse-sync-script.git
+          - git clone https://github.com/Ethsim12/discourse-ics-sync.git
 ```
 
 Rebuild:
