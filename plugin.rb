@@ -7,11 +7,15 @@
 # url: https://meta.discourse.org/t/syncing-ical-ics-feeds-into-discourse-topics-simple-python-script-cron-friendly/379361
 # required_version: 3.2.0
 
-enabled_site_setting :ics_enabled
-
+# Ensure plugin gems are installed by Discourse during bootstrap
+gem 'ice_cube', '0.16.4'
 gem 'icalendar', '2.8.0'
 
+enabled_site_setting :ics_enabled
+
 after_initialize do
+  require 'ice_cube'
+  require 'icalendar'
   module ::IcsSync
     PLUGIN_NAME = 'discourse-ics-sync'
 
