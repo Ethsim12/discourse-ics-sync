@@ -3,7 +3,7 @@
 # name: discourse-ics-sync
 # about: Pull ICS feeds into topics, upserting by UID (cronless via Sidekiq)
 # version: 0.1.0
-# authors: Cathyy & Ethan
+# authors: Ethan
 # url: https://meta.discourse.org/t/syncing-ical-ics-feeds-into-discourse-topics-simple-python-script-cron-friendly/379361
 # required_version: 3.2.0
 
