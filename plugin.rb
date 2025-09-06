@@ -16,6 +16,55 @@ enabled_site_setting :ics_enabled
 after_initialize do
   require 'ice_cube'
   require 'icalendar'
+  
+  # --- NEW: build [event] BBCode understood by discourse-calendar/events ---
+  module ::IcsSync
+    class Bbcode
+      def self.escape_attr(str)
+        str.to_s.gsub('"', '\"').gsub("\n", " ").strip
+      end
+
+      # Format Ruby Time/Date/DateTime to:
+      #  - date-only "YYYY-MM-DD" for all-day
+      #  - ISO-8601 UTC with Z "YYYY-MM-DDTHH:MM:SSZ" for timed events
+      def self.fmt(dt)
+        return "" unless dt
+        if dt.is_a?(Date) && !dt.is_a?(DateTime)
+          dt.strftime("%Y-%m-%d")
+        else
+          (dt.to_time.getutc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        end
+      end
+
+      # Returns the full post body (event bbcode + optional description + invisible UID marker)
+      def self.render_event(ev, site_tz:)
+        start_s = fmt(ev[:starts_at])
+        end_s   = fmt(ev[:ends_at]) if ev[:ends_at]
+        tz      = (ev[:tzid] || site_tz).to_s
+        name    = escape_attr(ev[:summary])
+        url     = escape_attr(ev[:url])
+        loc     = escape_attr(ev[:location])
+
+        attrs = []
+        attrs << %(start="#{start_s}") unless start_s.empty?
+        attrs << %(end="#{end_s}")     if end_s && !end_s.empty?
+        attrs << %(timezone="#{tz}")   unless tz.empty?
+        attrs << %(status="standalone")  # or "public" if you want RSVP UI
+        attrs << %(name="#{name}")     unless name.empty?
+        attrs << %(url="#{url}")       unless url.empty?
+        attrs << %(location="#{loc}")  unless loc.empty?
+        attrs << %(minimal="true")
+
+        body = +"[event #{attrs.join(' ')}]\n[/event]\n"
+        desc = ev[:description].to_s.strip
+        body << "\n#{desc}\n" unless desc.empty?
+        body << "\n<!-- ics_uid: #{escape_attr(ev[:uid])} -->\n"
+        body
+      end
+    end
+  end
+
+ 
   module ::IcsSync
     PLUGIN_NAME = 'discourse-ics-sync'
 
@@ -90,34 +139,50 @@ after_initialize do
       set_feed_state(key, { 'fetched_at' => Time.now.utc.iso8601, 'status' => 'error', 'error' => e.message })
       [nil, :error]
     end
+# Replace the entire render_event_body with this version:
 
-    def self.render_event_body(event, feed)
-      lines = []
-      lines << "[details=\"Event details\"]"
-      lines << ""
-      lines << "* **Summary:** #{event.summary}" if event.summary
-      if event.dtstart
-        start_utc = event.dtstart.to_time.utc
-        lines << "* **Starts:** #{start_utc.iso8601}"
-      end
-      if event.dtend
-        end_utc = event.dtend.to_time.utc
-        lines << "* **Ends:** #{end_utc.iso8601}"
-      end
-      lines << "* **Location:** #{event.location}" if event.location
-      lines << "* **UID:** `#{event.uid}`" if event.uid
-      lines << "* **Source:** #{feed['url']}" if feed['url']
-      lines << ""
-      if event.description
-        lines << ""
-        lines << "----"
-        lines << ""
-        lines << event.description.to_s.strip
-      end
-      lines << ""
-      lines << "[/details]"
-      lines.join("\n")
+def self.render_event_body(event, feed)
+  # Pull tzid (if present) from DTSTART/DTEND params
+  def extract_tzid(v)
+    return nil unless v && v.respond_to?(:params)
+    p = v.params || {}
+    # params keys can be strings or symbols depending on gem version
+    (p['tzid'] || p[:tzid] || [nil]).first
+  end
+
+  # Convert Icalendar::Values::* to Ruby Time/Date
+  def to_ruby_time_or_date(v)
+    return nil unless v
+    # All-day: Icalendar::Values::Date → Date
+    if defined?(Icalendar::Values::Date) && v.is_a?(Icalendar::Values::Date)
+      v.to_date
+    else
+      # Timed: prefer UTC if available, else to_time
+      v.respond_to?(:value_utc) ? v.value_utc : v.to_time
     end
+  end
+
+  ev = {
+    uid:         event.uid.to_s,
+    summary:     event.summary.to_s,
+    description: event.description.to_s,
+    location:    event.location.to_s,
+    url:         event.url.to_s,
+    starts_at:   to_ruby_time_or_date(event.dtstart),
+    ends_at:     to_ruby_time_or_date(event.dtend),
+    tzid:        extract_tzid(event.dtstart) || extract_tzid(event.dtend)
+  }
+
+  site_tz =
+    if SiteSetting.respond_to?(:calendar_default_timezone) &&
+       SiteSetting.calendar_default_timezone.present?
+      SiteSetting.calendar_default_timezone
+    else
+      "UTC"
+    end
+
+  ::IcsSync::Bbcode.render_event(ev, site_tz: site_tz)
+end
 
     def self.title_from_event(event)
       (event.summary || "Untitled event").to_s.strip
